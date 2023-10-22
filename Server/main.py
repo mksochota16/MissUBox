@@ -35,8 +35,11 @@ async def get_actions(api_key: str):
                 read_data_list.append(current_dict)
                 current_dict = {}
             else:
-                key, value = line.strip().split(": ")
-                current_dict[key] = value
+                try:
+                    key, value = line.strip().split(": ")
+                    current_dict[key] = value
+                except ValueError:
+                    current_dict["value"] = ""
 
     # clear buffer file
     with open("buffer_file.txt", "w") as file:

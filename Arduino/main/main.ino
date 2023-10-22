@@ -1,6 +1,7 @@
 #include <SPI.h>
 #include <EthernetENC.h>
 #include <LiquidCrystal_I2C.h>
+#include <Servo.h>
 
 const char TEXT_MESSAGE = '0';
 const char SPIN = '1';
@@ -14,6 +15,7 @@ IPAddress server(10,1,1,219);                        // server IP address, witho
 
 EthernetClient client;
 LiquidCrystal_I2C lcd(0x27, 16, 2); // I2C address 0x27, 16 column and 2 rows
+Servo servo;
 
 char responseBodyBuffer[128];
 char textBuffer[32];
@@ -45,6 +47,10 @@ void setup() {
   // wait to let the module properly initialize
   delay(1000);
 
+  servo.attach(SERVO_PIN);
+  delay(1000);
+  servo.write(0);
+
   // connection to the server
   Serial.print("Connecting to: ");
   Serial.print(server);
@@ -74,7 +80,7 @@ void makeRequest() {
   //Serial.println(client.remoteIP());
 
   // simple GET request
-  client.println("GET /test/ HTTP/1.1");
+  client.println("GET /?api_key=123 HTTP/1.1");
   client.println("Host: 10.1.1.219");
   client.println("User-Agent: Arduino/1.0");
   client.println("Connection: close");
@@ -104,16 +110,16 @@ void handleResponse() {
 
         case SPIN:
           Serial.println("SPIN");
-          // for (servoPos = 0; servoPos <= 180; servoPos += 1) { // goes from 0 degrees to 180 degrees
-          //   servo.write(servoPos);              // tell servo to go to position in variable 'pos'
-          //   ethDelay(15);                       // waits 15ms for the servo to reach the position
-          // }
+          for (servoPos = 0; servoPos <= 180; servoPos += 1) { // goes from 0 degrees to 180 degrees
+            servo.write(servoPos);              // tell servo to go to position in variable 'pos'
+            ethDelay(15);                       // waits 15ms for the servo to reach the position
+          }
 
-          // for (servoPos = 180; servoPos >= 0; servoPos -= 1) { // goes from 180 degrees to 0 degrees
-          //   servo.write(servoPos);              // tell servo to go to position in variable 'pos'
-          //   ethDelay(15);                       // waits 15ms for the servo to reach the position
+          for (servoPos = 180; servoPos >= 0; servoPos -= 1) { // goes from 180 degrees to 0 degrees
+            servo.write(servoPos);              // tell servo to go to position in variable 'pos'
+            ethDelay(15);                       // waits 15ms for the servo to reach the position
 
-          // }
+          }
           i = i+20;
           break; 
 
