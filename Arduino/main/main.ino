@@ -34,11 +34,32 @@ void setup() {
   
   Serial.println("========Start=========");
 
-  // initialize ethernet module with static configuration
-  Ethernet.begin(mac);
+  
+  servo.attach(SERVO_PIN);
+  delay(100);
+  servo.write(0);
+  delay(200);
+  servo.detach();
+
+
   lcd.init();
   lcd.clear();
   lcd.backlight();
+  lcd.setCursor(0,0);
+  lcd.print("init...");
+
+  // initialize ethernet module with static configuration
+  if(Ethernet.begin(mac) == 0){
+    Serial.println("Error ethernet init");
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print("ETH ERROR");
+    while(true){
+      delay(5000);
+    }
+  }
+
+  lcd.clear();
   lcd.setCursor(0,0);
   lcd.print("Brak wiadomosci");
   lcd.setCursor(0,1);
@@ -46,10 +67,6 @@ void setup() {
 
   // wait to let the module properly initialize
   delay(1000);
-
-  servo.attach(SERVO_PIN);
-  delay(1000);
-  servo.write(0);
 
   // connection to the server
   Serial.print("Connecting to: ");
@@ -110,6 +127,7 @@ void handleResponse() {
 
         case SPIN:
           Serial.println("SPIN");
+          servo.attach(SERVO_PIN);
           for (servoPos = 0; servoPos <= 180; servoPos += 1) { // goes from 0 degrees to 180 degrees
             servo.write(servoPos);              // tell servo to go to position in variable 'pos'
             ethDelay(15);                       // waits 15ms for the servo to reach the position
@@ -120,6 +138,7 @@ void handleResponse() {
             ethDelay(15);                       // waits 15ms for the servo to reach the position
 
           }
+          servo.detach();
           i = i+20;
           break; 
 
