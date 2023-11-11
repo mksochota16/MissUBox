@@ -11,7 +11,7 @@ const byte SERVO_PIN = 10;
 
 
 byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };  // ethernet module MAC address
-IPAddress server(10,1,1,219);                        // server IP address, without DNS
+IPAddress server(89,76,210,123);                        // server IP address, without DNS
 
 EthernetClient client;
 LiquidCrystal_I2C lcd(0x27, 16, 2); // I2C address 0x27, 16 column and 2 rows
@@ -88,7 +88,7 @@ void ethDelay(unsigned long milliseconds) {
 
 void makeRequest() {
   // notify successful connection
-  while (!client.connect(server, 80)) {
+  while (!client.connect(server, 27020)) {
     Serial.println("Connection failed, trying again...");
     delay(1000);
   }
@@ -97,8 +97,8 @@ void makeRequest() {
   //Serial.println(client.remoteIP());
 
   // simple GET request
-  client.println("GET /?api_key=123 HTTP/1.1");
-  client.println("Host: 10.1.1.219");
+  client.println("GET /?api_key=suXbEqhZBUPR0 HTTP/1.1");
+  client.println("Host: 89.76.210.123");
   client.println("User-Agent: Arduino/1.0");
   client.println("Connection: close");
   client.println();

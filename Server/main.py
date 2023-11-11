@@ -1,3 +1,5 @@
+import os
+from datetime import datetime
 from typing import List
 
 import uvicorn as uvicorn
@@ -7,6 +9,9 @@ from starlette.middleware.cors import CORSMiddleware
 from Server.models import ArduinoResponse, ArduinoAction, ActionType, ActionsPostBody
 
 API_KEY = "123" # input your API key here or read it from env
+ACTIONS_BUFFER_FILE = "buffer_file.txt"
+LOG_FILE = "log_file.txt"
+STATUS_FILE = "status_file.txt"
 
 app = FastAPI()
 app.add_middleware(
@@ -24,10 +29,17 @@ async def get_actions(api_key: str):
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect API KEY"
         )
+    with open(STATUS_FILE, 'w') as file:
+        file.write(f"{datetime.now()}")
+
+    if os.path.getsize(ACTIONS_BUFFER_FILE) == 0:
+        return ArduinoResponse(
+            actions = []
+        )
 
     read_data_list = []
     current_dict = {}
-    with open("buffer_file.txt", "r") as file:
+    with open(ACTIONS_BUFFER_FILE, "r") as file:
         # Read lines from the file and convert them back to a list of dictionaries (deserialize)
         for line in file:
             if line.strip() == "=====":
@@ -42,8 +54,12 @@ async def get_actions(api_key: str):
                     current_dict["value"] = ""
 
     # clear buffer file
-    with open("buffer_file.txt", "w") as file:
+    with open(ACTIONS_BUFFER_FILE, "w") as file:
         pass
+
+    # write datetime of last request
+    with open(LOG_FILE, "a+") as file:
+        file.write(f"<-READ {datetime.now()}\n")
 
     actions: List[ArduinoAction] = [ArduinoAction(type=ActionType[action["type"].split('.')[1]], value=action["value"]) for action in read_data_list]
     return ArduinoResponse(
@@ -58,15 +74,48 @@ async def post_actions(api_key: str, actions: ActionsPostBody):
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect API KEY"
         )
-
-    with open("buffer_file.txt", "w") as file:
+    text = ""
+    with open(ACTIONS_BUFFER_FILE, "w") as file:
         # Write the dictionary to the file as a string (serialize)
         for action in actions.actions:
             for key, value in action.model_dump().items():
                 file.write(f"{key}: {value}\n")
+                if key == 0:
+                    text = value
             file.write("=====\n")
 
+    # write datetime of last request
+    with open(LOG_FILE, "a+") as file:
+        file.write(f"->SENT {datetime.now()} {text}\n")
+
     return {"message": "ok"}
+
+@app.get("/status")
+async def get_status(api_key: str):
+    if api_key != API_KEY:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect API KEY"
+        )
+
+    with open(LOG_FILE, "r+") as file:
+        request_datetime = file.readline()
+
+    return {"last_request_time": request_datetime}
+
+
+@app.get("/logs")
+async def get_status(api_key: str):
+    if api_key != API_KEY:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect API KEY"
+        )
+
+    with open(LOG_FILE, 'r+') as file:
+        logs = file.read()
+
+    return {"logs": logs}
 
 
 if __name__ == "__main__":
