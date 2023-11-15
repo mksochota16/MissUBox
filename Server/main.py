@@ -80,8 +80,8 @@ async def post_actions(api_key: str, actions: ActionsPostBody):
         for action in actions.actions:
             for key, value in action.model_dump().items():
                 file.write(f"{key}: {value}\n")
-                if key == 'type' and value == ActionType.TEXT:
-                    text = value
+            if action.type == ActionType.TEXT:
+                text = action.value
             file.write("=====\n")
 
     # write datetime of last request
@@ -113,7 +113,9 @@ async def get_logs(api_key: str):
         )
     logs = []
     with open(LOG_FILE, 'r+') as file:
-        logs = file.readlines()
+        logs = []
+        for line in file.readlines():
+            logs.append(line.strip())
 
     return {"logs": logs}
 
