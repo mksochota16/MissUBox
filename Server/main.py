@@ -80,7 +80,7 @@ async def post_actions(api_key: str, actions: ActionsPostBody):
         for action in actions.actions:
             for key, value in action.model_dump().items():
                 file.write(f"{key}: {value}\n")
-                if key == 0:
+                if key == 'type' and value == ActionType.TEXT:
                     text = value
             file.write("=====\n")
 
@@ -111,9 +111,9 @@ async def get_logs(api_key: str):
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect API KEY"
         )
-
+    logs = []
     with open(LOG_FILE, 'r+') as file:
-        logs = file.read()
+        logs = file.readlines()
 
     return {"logs": logs}
 
