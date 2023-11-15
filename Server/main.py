@@ -98,14 +98,14 @@ async def get_status(api_key: str):
             detail="Incorrect API KEY"
         )
 
-    with open(LOG_FILE, "r+") as file:
+    with open(STATUS_FILE, "r+") as file:
         request_datetime = file.readline()
 
     return {"last_request_time": request_datetime}
 
 
 @app.get("/logs")
-async def get_status(api_key: str):
+async def get_logs(api_key: str):
     if api_key != API_KEY:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
